@@ -21,27 +21,7 @@ Next problem: what if **Application B** goes down on one of those EC2s? Somethin
 
 And since you now have multiple EC2s, each running multiple containers, you need something to **route traffic appropriately** across all of them — that's where a **load balancer** comes in.
 
-```mermaid
-flowchart TB
-    REG[(Docker Registry)] -- pull images --> EC1
-    REG -- pull images --> EC2i
-
-    LB[Load Balancer] --> EC1
-    LB --> EC2i
-
-    subgraph ASG["Auto Scaling Group (spans multiple AZs)"]
-        subgraph EC1["EC2 - AZ 1"]
-            A1[Container: App A]
-            B1[Container: App B]
-        end
-        subgraph EC2i["EC2 - AZ 2"]
-            A2[Container: App A]
-            B2[Container: App B]
-        end
-    end
-
-    MON[Health Monitoring] -. detects failed container,<br/>restarts it .-> B1
-```
+<img width="869" height="395" alt="image" src="https://github.com/user-attachments/assets/f530f6da-c99f-4c45-bc50-aee7bda9af19" />
 
 ## All the tasks piling up
 
