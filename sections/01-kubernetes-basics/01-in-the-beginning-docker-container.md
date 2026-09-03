@@ -17,6 +17,8 @@ Then one day your code moves into the **production environment**, which (as prod
 
 At this point you're asking yourself: "why did I even take this job?"
 
+<img width="1051" height="517" alt="image" src="https://github.com/user-attachments/assets/a87ed874-82b3-4b51-a8ef-6cbc2d80a15e" />
+
 ## Two kinds of developers
 
 There are two ways developers tend to react here (no judgment either way):
@@ -40,14 +42,8 @@ In short: **image = the packaged template (like a class); container = a running 
 
 ## The full flow
 
-```mermaid
-flowchart LR
-    APP[Your app code<br/>Java, Python, etc.] --> DF
-    DF[Dockerfile<br/>lists dependencies, config, runtime,<br/>and build instructions] -- docker build --> IMG[Docker Image]
-    IMG -- docker push --> REG[(Registry<br/>Docker Hub / Amazon ECR)]
-    REG -- docker pull --> DEPLOY[Deployed onto a host]
-    DEPLOY -- docker run --> CTR[Running Container<br/>your app is now actually executing]
-```
+<img width="1114" height="453" alt="image" src="https://github.com/user-attachments/assets/ad44b076-3828-4454-a357-1db7b9632b08" />
+
 
 1. You start with your **application code**.
 2. You write a **Dockerfile** — it declares what dependencies, configuration, and runtime your app needs, plus the commands to build the image.
@@ -61,21 +57,8 @@ You can run that container on *any* platform that supports Docker. The most popu
 
 This comes up constantly in interviews, so it's worth being precise. Containers and VMs both isolate resources, but they do it very differently.
 
-```mermaid
-graph TD
-    subgraph VM["Virtual Machines"]
-        H1[Physical Server] --> HV[Hypervisor]
-        HV --> G1[Guest OS #1<br/>tens of GBs, slow boot] --> A1[App + Libraries]
-        HV --> G2[Guest OS #2<br/>tens of GBs, slow boot] --> A2[App + Libraries]
-    end
+<img width="1077" height="341" alt="image" src="https://github.com/user-attachments/assets/644bf46a-6c06-4d64-85c1-8a274905900f" />
 
-    subgraph CT["Containers"]
-        H2[Physical Server] --> HOS[Host OS + Container Engine]
-        HOS --> C1[App + Libraries]
-        HOS --> C2[App + Libraries]
-        HOS --> C3[App + Libraries]
-    end
-```
 
 - A **virtual machine** is an abstraction of physical hardware — it turns one server into many. A **hypervisor** allows multiple VMs to run on one machine. Each VM bundles its app, libraries, and runtime — **plus a full guest operating system**, which takes up tens of gigabytes and boots slowly.
 - A **container** is an abstraction at the **application layer** — it packages code and dependencies together, but **multiple containers on the same machine share the host's kernel/OS**. You don't bundle a guest OS into every container, so containers use far less space than VMs.
