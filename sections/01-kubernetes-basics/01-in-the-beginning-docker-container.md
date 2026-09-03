@@ -1,8 +1,6 @@
 # 1. In the Beginning – Docker Container
 *Section 1: Kubernetes Basics · ~9 min*
 
-> Notes below are built from the lecture transcript (translated from Thai into English and cleaned up).
-
 ## The million-dollar question: what is a Docker container?
 
 The lecture opens with a story to build intuition before giving the formal definition.
