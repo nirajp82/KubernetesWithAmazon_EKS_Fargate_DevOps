@@ -1,8 +1,6 @@
 # 3. Kubernetes Introduction
 *Section 1: Kubernetes Basics · ~9 min*
 
-> Notes below are built from the lecture transcript.
-
 ## Why Kubernetes exists
 
 Kubernetes is the most popular container orchestrator — but what actually *is* it, what are its components, and what does each one do? Start with the reason it exists at all: **to run your application.**
