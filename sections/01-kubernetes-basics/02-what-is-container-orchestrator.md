@@ -1,8 +1,6 @@
 # 2. What is Container Orchestrator?
 *Section 1: Kubernetes Basics · ~4 min*
 
-> Notes below are built from the lecture transcript.
-
 ## Setting up the scenario
 
 We already know what a Docker container is, and how it avoids "it works on my machine" scenarios. Now: what is a **container orchestrator**? It's one of those big, fancy words — like "framework" or "blockchain" — that everyone nods along to but few can actually define. Let's fix that with a concrete walkthrough.
