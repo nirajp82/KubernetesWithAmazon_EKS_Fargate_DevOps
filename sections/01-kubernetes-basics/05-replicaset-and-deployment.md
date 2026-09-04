@@ -20,6 +20,8 @@ Think of Deployment as another wrapper, one level up from ReplicaSet:
 - A **Pod** wraps a **container**.
 - A **ReplicaSet** wraps a group of **Pods**.
 - A **Deployment** wraps a **ReplicaSet**.
+- 
+<img width="573" height="407" alt="image" src="https://github.com/user-attachments/assets/8b9f8fb0-8e27-4c01-86a1-ee2fd5eda55d" />
 
 Deployment provides **declarative updates** for Pods and ReplicaSets: you describe a desired state in a deployment file, and the **Deployment controller** changes the actual state to match the desired state, at a controlled rate. You can also define deployments to create a new ReplicaSet, or to remove existing deployments and have new ones adopt their resources.
 
