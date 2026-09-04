@@ -50,24 +50,6 @@ A NodePort Service exposes an application by opening a specific static port (ran
 
 **Architecture Diagram**
 
-```mermaid
-flowchart TD
-    Req["Request: https://10.16.10.01:32000"] --> SVC["Name: frontend-service \n NodePort: 32000 \n selector: app: frontend"]
-    
-    subgraph Node1 ["Node 1 (10.16.10.01)"]
-        P1["Nginx Pod \n IP: 10.16.48.53 \n app: frontend"]
-        P2["Nginx Pod \n IP: 10.16.93.80 \n app: frontend"]
-    end
-    
-    subgraph Node2 ["Node 2 (10.18.10.01)"]
-        P3["Nginx Pod \n IP: 10.18.48.53 \n app: frontend"]
-        P4["Nginx Pod \n IP: 10.18.93.80 \n app: frontend"]
-    end
-
-    SVC --> Node1
-    SVC --> Node2
-
-```
 
 **Key Takeaways & Caveats**
 
@@ -82,45 +64,6 @@ flowchart TD
 
 <img width="1213" height="519" alt="image" src="https://github.com/user-attachments/assets/4eddb6bf-5487-459e-9286-42ad3ca4f413" />
 
-## Workflow
-
-```mermaid
-flowchart TD
-    External[External User / Internet]
-    Internal[Internal Pod / Web Server]
-    
-    External -->|Uses Node IP : 32000| NP[NodePort Service]
-    External -->|Uses DNS Name| LB[LoadBalancer Service]
-    Internal -->|Uses Internal IP| CIP[ClusterIP Service]
-    
-    NP --> Pod1[Pod :80]
-    LB --> Pod1
-    CIP --> Pod2[Database Pod :3306]
-
-```
-
-## Architecture Diagram
-
-```mermaid
-block-beta
-  columns 3
-  space
-  Internet["Internet Traffic"]
-  space
-  
-  space
-  LB["LoadBalancer (AWS ELB)"]
-  space
-  
-  Node1["Node 1 (10.16.10.01)"]
-  Node2["Node 2 (10.18.10.01)"]
-  CIP["ClusterIP (Internal)"]
-  
-  Internet --> LB
-  LB --> Node1
-  LB --> Node2
-
-```
 
 ## Step-by-Step Process
 
