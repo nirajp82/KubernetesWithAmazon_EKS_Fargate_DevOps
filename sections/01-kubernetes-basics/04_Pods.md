@@ -94,6 +94,8 @@ kubectl get pods -n <namespace-name>
 | **Standard Web App** | One Pod running an Nginx container, grouped in a specific Namespace. |
 | **Monitored App** | One Pod containing the main app container and an auxiliary sidecar container extracting metrics for Prometheus. |
 
+<img width="986" height="792" alt="image" src="https://github.com/user-attachments/assets/a4f2136a-572b-4b64-b2e1-35d09bc37c14" />
+
 ## Glossary
 
 * **Pod:** One or more containers that share storage and network resources.
