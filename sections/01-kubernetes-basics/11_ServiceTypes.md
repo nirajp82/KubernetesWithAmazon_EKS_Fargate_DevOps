@@ -234,7 +234,41 @@ sequenceDiagram
 * **Under the Hood:** When you create a `LoadBalancer` Service, Kubernetes automatically creates a hidden `NodePort` behind the scenes.
 * **The Flow:** The AWS ELB receives the public internet traffic and load-balances it across the physical IPs of your worker Nodes using that automatically assigned NodePort.
 * **The Handoff:** Once the traffic hits the worker Node, the exact same `kube-proxy` interception process takes over, translating the destination and routing the packet directly into the target Pod.
-* 
+
+
+The physical journey of a network packet in Kubernetes relies on the Linux kernel's networking stack rather than physical K8s routing hardware.
+
+**Under the Hood: The Physical Packet Journey**
+
+```mermaid
+flowchart TD
+    Client[External Client] -->|1. Request to Public IP| ELB[AWS Elastic Load Balancer]
+    
+    subgraph Worker Node [Worker Node Linux Environment]
+        NIC[Node Network Interface \n eth0 IP: 10.16.10.01]
+        IPT[Linux Kernel netfilter / iptables \n Managed by kube-proxy]
+        VNET[Container Network Interface \n Virtual Bridge e.g., cni0]
+    end
+    
+    subgraph Pod Environment [Target Pod Network Namespace]
+        App[Application Container \n Pod IP: 10.16.48.53:80]
+    end
+    
+    ELB -->|2. Routes to NodeIP:NodePort \n 10.16.10.01:32000| NIC
+    NIC -->|3. Packet intercepted by OS| IPT
+    IPT -->|4. DNAT translates Dest IP \n to 10.16.48.53:80| VNET
+    VNET -->|5. Forwards to Pod interface| App
+
+```
+
+**Step-by-Step Packet Execution**
+
+* **Phase 1: External Ingress.** The external client's request hits the AWS Elastic Load Balancer (ELB). The ELB looks at its target group (your worker Nodes) and forwards the packet to the physical IP address of one of the Nodes using the automatically assigned NodePort (e.g., `10.16.10.01:32000`).
+* **Phase 2: Hardware Arrival.** The packet physically arrives at the worker Node's network interface card (typically `eth0`).
+* **Phase 3: Kernel Interception (`netfilter`).** Before the packet can reach standard user-space processes, the Linux kernel's internal network processing framework (`netfilter`) intercepts it.
+* **Phase 4: The kube-proxy Translation (DNAT).** `kube-proxy` runs in the background on every Node, constantly writing K8s Service definitions into the `netfilter` framework via `iptables` rules. These rules trigger a Destination Network Address Translation (DNAT). The kernel instantly rewrites the packet's destination header, changing it from `10.16.10.01:32000` to the internal IP of the chosen Pod (e.g., `10.16.48.53:80`).
+* **Phase 5: The Virtual Bridge (CNI).** Now that the packet has the correct internal Pod IP, the Node's routing table sends it to the Container Network Interface (CNI) virtual bridge (managed by plugins like Flannel or Calico). This bridge acts as a virtual switch, pushing the packet directly into the isolated network namespace of the target Pod.
+  
 ## Practice Exercises
 
 * Review a standard multi-tier deployment. Draft a `ClusterIP` Service YAML for the Redis backend, and a `LoadBalancer` Service YAML for the React frontend. Ensure your `targetPort` configurations align with standard default ports (6379 and 80).
