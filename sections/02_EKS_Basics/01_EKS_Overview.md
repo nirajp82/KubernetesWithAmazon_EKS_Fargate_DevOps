@@ -56,21 +56,21 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    subgraph AWS Managed [AWS Managed: Kubernetes Control Plane]
+    subgraph AWS_Managed ["AWS Managed: Kubernetes Control Plane"]
         direction LR
-        AZ1[Availability Zone 1 \n etcd & API Server]
-        AZ2[Availability Zone 2 \n etcd & API Server]
-        AZ3[Availability Zone 3 \n etcd & API Server]
+        AZ1["Availability Zone 1<br/>etcd & API Server"]
+        AZ2["Availability Zone 2<br/>etcd & API Server"]
+        AZ3["Availability Zone 3<br/>etcd & API Server"]
     end
-    
-    subgraph Customer Managed [Customer Managed: Data Plane]
+
+    subgraph Customer_Managed ["Customer Managed: Data Plane"]
         direction LR
-        N1[EC2 Worker Node]
-        N2[Managed Node Group]
-        F1[Fargate Serverless Pods]
+        N1["EC2 Worker Node"]
+        N2["Managed Node Group"]
+        F1["Fargate Serverless Pods"]
     end
-    
-    AWS Managed --- Customer Managed
+
+    AWS_Managed --- Customer_Managed
 
 ```
 
