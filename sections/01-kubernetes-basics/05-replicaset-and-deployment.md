@@ -1,8 +1,6 @@
 # 5. ReplicaSet & Deployment
 *Section 1: Kubernetes Basics · ~11 min*
 
-> Notes below are built from the lecture transcript (+ the manifest-file diagram shown in the lecture).
-
 ## Why Deployment matters
 
 **Deployment** is one of the most important Kubernetes concepts — pretty much every enterprise Kubernetes implementation uses it. Here's the chain of reasoning that gets you there.
