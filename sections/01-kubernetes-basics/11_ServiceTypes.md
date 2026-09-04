@@ -167,9 +167,9 @@ A: You must know the specific IP address of the Node to connect via NodePort. Si
 
 The technical accuracy of your text is excellent. The only required fixes are consolidating the two separate FAQ headers into one cohesive section, applying bullet points for readability, and slightly tightening the wording to prevent the `kube-proxy` and "virtual abstraction" explanations from feeling repetitive.
 
-**FAQ: NodePort Traffic Routing & Failures**
 
 **Q: If I use the Node's IP address and NodePort, how does the traffic get redirected to the Service instead of just stopping at the Node?**
+
 **A:** Every Node in a Kubernetes cluster runs a background networking agent called `kube-proxy`. When you create a NodePort Service, `kube-proxy` automatically updates the internal network routing rules (typically using `iptables` or IPVS) on every single Node.
 
 * **Interception:** When an external request hits the Node's IP at the designated NodePort (e.g., `32000`), the Node's OS does not process the request as standard local web traffic. Instead, `iptables` rules immediately intercept it.
@@ -195,16 +195,45 @@ sequenceDiagram
 ```
 
 **Q: Does external traffic *always* have to hit the physical Node first before reaching the Service?**
+
 **A:** Yes. A Kubernetes Service does not exist physically on the external network; it is purely a virtual abstraction inside the cluster. External clients must route packets to a physical or virtual machine's IP address first. `kube-proxy` only injects the packet into the internal K8s Service layer *after* it arrives at the Node.
 
 **Q: If I access the application via `10.16.10.01:32000` and Node `10.16.10.01` goes down, what happens?**
+
 **A:** The request will fail entirely. Even if the backend Pods are perfectly healthy and running on other surviving Nodes, the specific entry point you used (`10.16.10.01`) is dead.
 
 **Q: How do you prevent an outage if that specific Node goes down?**
+
 **A:** This exact vulnerability is why NodePort is rarely used for production. You have two options:
 
 * **Manual Fix:** Reconfigure your external client to point to the IP address of a surviving Node (e.g., `10.18.10.01:32000`).
 * **Production Fix (LoadBalancer):** Place a traditional external load balancer (like AWS ELB or HAProxy) in front of your cluster. The load balancer monitors all Node IPs and automatically stops sending traffic to `10.16.10.01` if it crashes, seamlessly rerouting all users to `10.18.10.01`.
+
+**FAQ: Under the Hood of Kubernetes Networking**
+
+**Q: When using a NodePort, does the traffic physically route to a "Service" before going to the Pod?**
+
+**A:** Conceptually yes, but physically no. A Kubernetes Service is not a physical machine, a container, or a router that a packet can physically stop at. It is a virtual abstraction implemented purely as routing rules.
+
+* **The Logical View (How we design it):** External Request → Node → Service → Pod. In our minds and diagrams, the Service acts as a reliable middleman load balancer.
+* **The Physical Reality (How Linux routes it):** A Service is actually just a list of `iptables` (or IPVS) network rules managed by the `kube-proxy` agent on every Node.
+* **The Handoff:** When a packet hits the Node's network interface, these `iptables` rules instantly intercept it and perform Destination Network Address Translation (DNAT). They rewrite the packet's destination IP address from the Node's IP directly to the chosen Pod's internal IP. The packet is then forwarded straight to the Pod. When we say the packet "goes to the Service," we actually mean the packet "hits the Service's routing rules."
+
+**Q: How exactly does the NodePort interception process work?**
+
+**A:** When an external request arrives at a Kubernetes cluster via a NodePort, it physically hits the network interface of a worker Node first.
+
+* At that exact moment, `kube-proxy` (using `iptables` rules) intercepts the packet.
+* These routing rules immediately rewrite the packet's destination IP address from the Node's external IP to the internal IP of one of the underlying Pods.
+* The packet is then forwarded across the cluster's internal network directly to that target Pod. The Service abstraction acts as a set of routing rules rather than a physical hop.
+
+**Q: If I use a LoadBalancer Service (like an AWS ELB), does the ELB send internet traffic directly to my Pods or to the Nodes?**
+
+**A:** The ELB sends traffic to the worker Nodes first.
+
+* **Under the Hood:** When you create a `LoadBalancer` Service, Kubernetes automatically creates a hidden `NodePort` behind the scenes.
+* **The Flow:** The AWS ELB receives the public internet traffic and load-balances it across the physical IPs of your worker Nodes using that automatically assigned NodePort.
+* **The Handoff:** Once the traffic hits the worker Node, the exact same `kube-proxy` interception process takes over, translating the destination and routing the packet directly into the target Pod.
 * 
 ## Practice Exercises
 
