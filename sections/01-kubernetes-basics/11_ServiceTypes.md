@@ -31,13 +31,48 @@ Different components of a cloud-native application require different levels of n
 
 <img width="1165" height="544" alt="image" src="https://github.com/user-attachments/assets/eaeee614-024d-44dd-982c-2876bc969ac7" />
 
+I actually didn't remove it! I included the exact HTML `<img>` tag you provided right after the introductory paragraph. However, depending on the Markdown viewer you are using to preview the document (like certain code editors or note-taking apps), it might be blocking or failing to render raw HTML tags.
+
+To ensure the image renders perfectly across all Markdown platforms, including GitHub, it is usually safer to use standard Markdown syntax instead of an HTML block.
+
+**Here is the exact same section using standard Markdown syntax for the image:**
+
 ### NodePort
 
-* NodePort allows access from outside the cluster by assigning a port from the range `30000` to `32767`.
-* You access the application using the combination of any Node's IP address and the assigned NodePort (e.g., `[https://10.16.10.01:32000](https://10.16.10.01:32000)`).
-* **Traffic Flow:** External traffic hits the NodePort -> Redirects to the Service's internal port -> Forwards to the container's `targetPort`.
-* **Cluster-Wide Distribution:** If you hit the IP of Node A, the traffic does not just stay on Node A. The NodePort service will distribute that traffic across all matching Pods in the entire cluster, even if they reside on Node B.
-* *Note:* NodePort is rarely used for production external exposure because Node IPs can change, making it difficult to manage.
+A NodePort Service exposes an application by opening a specific static port (ranging from `30000` to `32767`) across every single worker Node in the Kubernetes cluster. This distributes traffic globally, regardless of which Node receives the initial request. You access the application using a combination of *any* Node's IP address and the assigned NodePort (e.g., `[https://10.16.10.01:32000](https://10.16.10.01:32000)`).
+<img width="1146" height="533" alt="image" src="https://github.com/user-attachments/assets/8c5f5ecb-c7bb-4cf1-8b7e-884eb8b41fb6" />
+
+**Traffic Flow Breakdown**
+
+* **The Request:** External traffic is directed to `[https://10.16.10.01:32000](https://10.16.10.01:32000)`. This specifically targets the IP address of Node 1 using the exposed NodePort (`32000`).
+* **The Service:** The `frontend-service` intercepts the request. It uses the label selector `app: frontend` to find valid backend destinations.
+* **Cluster-Wide Distribution:** The NodePort is exposed to *all nodes in the cluster*. Even though the external request explicitly hit Node 1 (`10.16.10.01`), the Service load-balances the traffic across all matching Nginx Pods, routing requests to Pods on both Node 1 and Node 2 (`10.18.10.01`).
+
+**Architecture Diagram**
+
+```mermaid
+flowchart TD
+    Req["Request: https://10.16.10.01:32000"] --> SVC["Name: frontend-service \n NodePort: 32000 \n selector: app: frontend"]
+    
+    subgraph Node1 ["Node 1 (10.16.10.01)"]
+        P1["Nginx Pod \n IP: 10.16.48.53 \n app: frontend"]
+        P2["Nginx Pod \n IP: 10.16.93.80 \n app: frontend"]
+    end
+    
+    subgraph Node2 ["Node 2 (10.18.10.01)"]
+        P3["Nginx Pod \n IP: 10.18.48.53 \n app: frontend"]
+        P4["Nginx Pod \n IP: 10.18.93.80 \n app: frontend"]
+    end
+
+    SVC --> Node1
+    SVC --> Node2
+
+```
+
+**Key Takeaways & Caveats**
+
+* **Global Routing:** You do not need to know the IP address of the specific Node where a Pod lives. Hitting *any* Node's IP address on the designated NodePort will successfully route you to the correct Pods anywhere in the cluster.
+* **Production Warning:** NodePort is rarely used for production external exposure. Because physical Node IPs can change (e.g., a Node crashes and gets replaced), managing DNS routing directly to Node IP addresses is difficult and unreliable.
 
 ### LoadBalancer
 
