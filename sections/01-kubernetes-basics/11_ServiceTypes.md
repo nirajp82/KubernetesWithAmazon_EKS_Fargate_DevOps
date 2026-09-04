@@ -165,6 +165,47 @@ A: `nodePort` is the external port exposed on all Nodes (30000-32767). It redire
 **Q: Why shouldn't you use NodePort for a production public-facing application?**
 A: You must know the specific IP address of the Node to connect via NodePort. Since Node IPs can change (if a Node crashes and is replaced), managing DNS routing is difficult and unreliable.
 
+The technical accuracy of your text is excellent. The only required fixes are consolidating the two separate FAQ headers into one cohesive section, applying bullet points for readability, and slightly tightening the wording to prevent the `kube-proxy` and "virtual abstraction" explanations from feeling repetitive.
+
+**FAQ: NodePort Traffic Routing & Failures**
+
+**Q: If I use the Node's IP address and NodePort, how does the traffic get redirected to the Service instead of just stopping at the Node?**
+**A:** Every Node in a Kubernetes cluster runs a background networking agent called `kube-proxy`. When you create a NodePort Service, `kube-proxy` automatically updates the internal network routing rules (typically using `iptables` or IPVS) on every single Node.
+
+* **Interception:** When an external request hits the Node's IP at the designated NodePort (e.g., `32000`), the Node's OS does not process the request as standard local web traffic. Instead, `iptables` rules immediately intercept it.
+* **Translation:** The network rules rewrite the packet's destination, redirecting it from the Node's external network interface to the Service's internal ClusterIP.
+* **Routing:** The Service then takes over, load-balancing the request and forwarding it to the `targetPort` of one of the underlying Pods.
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant Client as External Client
+    participant Node as Worker Node (NIC)
+    participant KP as kube-proxy (iptables)
+    participant Svc as K8s Service
+    participant Pod as Target Pod
+
+    Client->>Node: Sends request to NodeIP:NodePort (10.16.10.01:32000)
+    Note over Node,KP: Packet physically hits the Node's network interface first.
+    Node->>KP: OS intercepts traffic before it reaches user space.
+    KP->>Svc: Translates destination to the Service's internal IP.
+    Svc->>Pod: Load-balances and routes to the Pod's targetPort.
+    Pod-->>Client: Processes request and returns response.
+
+```
+
+**Q: Does external traffic *always* have to hit the physical Node first before reaching the Service?**
+**A:** Yes. A Kubernetes Service does not exist physically on the external network; it is purely a virtual abstraction inside the cluster. External clients must route packets to a physical or virtual machine's IP address first. `kube-proxy` only injects the packet into the internal K8s Service layer *after* it arrives at the Node.
+
+**Q: If I access the application via `10.16.10.01:32000` and Node `10.16.10.01` goes down, what happens?**
+**A:** The request will fail entirely. Even if the backend Pods are perfectly healthy and running on other surviving Nodes, the specific entry point you used (`10.16.10.01`) is dead.
+
+**Q: How do you prevent an outage if that specific Node goes down?**
+**A:** This exact vulnerability is why NodePort is rarely used for production. You have two options:
+
+* **Manual Fix:** Reconfigure your external client to point to the IP address of a surviving Node (e.g., `10.18.10.01:32000`).
+* **Production Fix (LoadBalancer):** Place a traditional external load balancer (like AWS ELB or HAProxy) in front of your cluster. The load balancer monitors all Node IPs and automatically stops sending traffic to `10.16.10.01` if it crashes, seamlessly rerouting all users to `10.18.10.01`.
+* 
 ## Practice Exercises
 
 * Review a standard multi-tier deployment. Draft a `ClusterIP` Service YAML for the Redis backend, and a `LoadBalancer` Service YAML for the React frontend. Ensure your `targetPort` configurations align with standard default ports (6379 and 80).
