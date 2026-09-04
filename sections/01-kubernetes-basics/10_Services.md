@@ -73,6 +73,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: frontend-deployment
+  namespace: production 
 spec:
   replicas: 2
   selector:
@@ -96,6 +97,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: lb-service
+  namespace: production 
   labels:
     app: lb-service
 spec:
