@@ -69,6 +69,14 @@ This defines **how Pods get upgraded** — say, bumping the image from `nginx:1.
 - **`maxUnavailable: 0`** — the maximum number of Pods allowed to be missing from the desired state during the update. With desired state = 3 and `maxUnavailable: 0`, at least **3** Pods must be running at all times throughout the rollout. (If this were `maxUnavailable: 1` instead, the rollout could drop down to `3 - 1 = 2` running Pods at a time.)
 
 ### The rollout, step by step
+- Initial (Before Upgrade)
+<img width="556" height="600" alt="image" src="https://github.com/user-attachments/assets/ca40cdd4-1eb5-40f1-8205-6bd811fae6a3" />
+
+-During Upgrade
+<img width="1854" height="966" alt="image" src="https://github.com/user-attachments/assets/fbd3fd10-07fd-40f1-8dae-437c6838d784" />
+
+-After Upgrade
+<img width="988" height="579" alt="image" src="https://github.com/user-attachments/assets/8d163fd6-1a95-474d-bd92-a2349872a586" />
 
 ```mermaid
 sequenceDiagram
