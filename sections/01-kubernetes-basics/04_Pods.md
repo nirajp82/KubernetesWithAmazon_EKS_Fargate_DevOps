@@ -31,16 +31,13 @@ Never scale an application by adding more primary app containers to a single Pod
 
 ## Workflow
 
-```mermaid
-flowchart LR
-    A[Code] --> B[Docker Image]
-    B --> C[Registry]
-    C --> D[Define Pod in YAML]
-    D --> E[Deploy Pod to Node]
+<img width="931" height="420" alt="image" src="https://github.com/user-attachments/assets/352e8b7a-9db9-4deb-90f3-9bf37e1863a6" />
 
-```
 
 ## Architecture Diagram
+<img width="876" height="480" alt="image" src="https://github.com/user-attachments/assets/55337487-8953-47f5-9b0a-f4c56b384764" />
+
+- https://community.veeam.com/kubernetes-korner-90/components-and-processes-for-creating-a-kubernetes-pod-6335 
 
 ```mermaid
 flowchart TD
