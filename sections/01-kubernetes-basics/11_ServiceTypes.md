@@ -2,7 +2,12 @@
 
 ## Overview
 
-This chapter covers the three primary types of Kubernetes Services: ClusterIP, NodePort, and LoadBalancer. Regardless of the type chosen, all Services perform the fundamental job of discovering and distributing network traffic across underlying Pods using label selectors.
+This chapter covers the three primary types of Kubernetes Services: 
+ - ClusterIP
+ - NodePort
+ - LoadBalancer
+   
+Regardless of the type chosen, all Services perform the fundamental job of discovering and distributing network traffic across underlying Pods using label selectors.
 
 ## Why This Matters
 
