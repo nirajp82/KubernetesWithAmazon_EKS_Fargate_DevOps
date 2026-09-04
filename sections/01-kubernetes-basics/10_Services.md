@@ -25,8 +25,13 @@ Pods are mortal and ephemeral. When a Pod crashes or gets replaced, it receives 
 Pods in K8s clusters dynamically scale up, down, or get recreated. If a frontend Nginx Pod connects directly to a backend MySQL Pod's IP, the connection breaks the moment that MySQL Pod crashes and gets replaced.
 
 **How Services Discover Pods**
-As shown in `image_c7c041.png`, Services do not track Pods by IP; they track them by **Labels**. When defining a Service, you provide a `selector` (e.g., `app: frontend`). The Service continuously scans the cluster for any Pods matching that exact label and adds them to its routing pool.
 
+Services do not track Pods by static IPs; they track them dynamically using **Labels**. When you define a Service, you provide a `selector` (e.g., `app: frontend`). The Service continuously queries the Kubernetes API to find any Pods matching that exact label and adds them to its active routing pool.
+
+**Important Scope Limits:**
+
+* **Same Cluster:** The Service only scans the internal directory of the specific Kubernetes cluster where it is deployed. It cannot route traffic to Pods in an entirely separate cluster.
+* **Same Namespace:** Services are strictly namespace-bound. A Service deployed in the `production` namespace will only discover matching Pods within that exact `production` namespace. It will completely ignore Pods with the exact same label if they are deployed in a different namespace (like `testing` or `dev`).
 ## Workflow
 
 ```mermaid
