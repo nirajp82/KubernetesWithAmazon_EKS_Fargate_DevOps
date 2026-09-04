@@ -39,6 +39,7 @@ flowchart TD
 ```
 
 ## Architecture Diagram
+<img width="971" height="457" alt="image" src="https://github.com/user-attachments/assets/d69ddf53-cb8c-45c2-a321-8df709c349ec" />
 
 *The following reflects the label selector binding process shown in `image_c7c041.png`.*
 
