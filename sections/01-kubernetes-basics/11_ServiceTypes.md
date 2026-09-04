@@ -29,6 +29,8 @@ Different components of a cloud-native application require different levels of n
 * **Ideal Use Case:** Routing traffic from an internal web server to a backend database.
 * **Ports:** The `port` field defines how other K8s components access the Service, while `targetPort` dictates which port the destination container is listening on. By default, it uses the TCP protocol.
 
+<img width="1165" height="544" alt="image" src="https://github.com/user-attachments/assets/eaeee614-024d-44dd-982c-2876bc969ac7" />
+
 ### NodePort
 
 * NodePort allows access from outside the cluster by assigning a port from the range `30000` to `32767`.
