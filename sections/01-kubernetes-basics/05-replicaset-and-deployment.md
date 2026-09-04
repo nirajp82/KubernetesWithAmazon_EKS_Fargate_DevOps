@@ -35,33 +35,8 @@ graph TB
 
 ## Walking through an actual manifest
 
-```yaml
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  labels:
-    environment: test
-  name: testdeploy
-spec:
-  replicas: 3
-  selector:
-    matchLabels:
-      environment: test
-  minReadySeconds: 10
-  strategy:
-    rollingUpdate:
-      maxSurge: 1
-      maxUnavailable: 0
-    type: RollingUpdate
-  template:
-    metadata:
-      labels:
-        environment: test
-    spec:
-      containers:
-      - image: nginx:1.16
-        name: nginx
-```
+<img width="1758" height="955" alt="image" src="https://github.com/user-attachments/assets/9c87d684-7956-4c4c-aa4d-6ef0521f1dd6" />
+
 
 Read it bottom-up, starting at the Pod level:
 
