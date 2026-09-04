@@ -80,6 +80,8 @@ flowchart TD
 * It is cloud-specific; for example, deploying this on AWS provisions an Elastic Load Balancer (ELB).
 * It provides enterprise features that NodePorts lack, such as a stable DNS name, SSL termination, Web Application Firewall (WAF) integration, access logs, and health checks.
 
+<img width="1213" height="519" alt="image" src="https://github.com/user-attachments/assets/4eddb6bf-5487-459e-9286-42ad3ca4f413" />
+
 ## Workflow
 
 ```mermaid
