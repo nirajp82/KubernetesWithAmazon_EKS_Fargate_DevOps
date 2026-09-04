@@ -25,18 +25,9 @@ Think of Deployment as another wrapper, one level up from ReplicaSet:
 
 Deployment provides **declarative updates** for Pods and ReplicaSets: you describe a desired state in a deployment file, and the **Deployment controller** changes the actual state to match the desired state, at a controlled rate. You can also define deployments to create a new ReplicaSet, or to remove existing deployments and have new ones adopt their resources.
 
-```mermaid
-graph TB
-    D["Deployment\nlabels: environment=test"] --> RS["ReplicaSet\nmatchLabels: environment=test"]
-    RS --> P1["Pod\nnginx:1.16\nenvironment=test"]
-    RS --> P2["Pod\nnginx:1.16\nenvironment=test"]
-    RS --> P3["Pod\nnginx:1.16\nenvironment=test"]
-```
-
 ## Walking through an actual manifest
 
-<img width="1758" height="955" alt="image" src="https://github.com/user-attachments/assets/9c87d684-7956-4c4c-aa4d-6ef0521f1dd6" />
-
+<img width="1400" height="955" alt="image" src="https://github.com/user-attachments/assets/9c87d684-7956-4c4c-aa4d-6ef0521f1dd6" />
 
 Read it bottom-up, starting at the Pod level:
 
