@@ -28,6 +28,8 @@ It is vital to understand the boundary between these two tools:
 * **`eksctl` provisions the AWS infrastructure.** You use it to create the cluster, add EC2 nodes, configure VPCs, and set up IAM.
 * **`kubectl` manages the K8s resources inside the cluster.** Once the cluster exists, you switch to `kubectl` to deploy pods, services, and deployments.
 
+<img width="872" height="440" alt="image" src="https://github.com/user-attachments/assets/9758dfcc-35b7-4edd-92e8-dcb9a2396f57" />
+
 ## Workflow
 
 ```mermaid
