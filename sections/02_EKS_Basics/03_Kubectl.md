@@ -13,11 +13,32 @@ If Kubernetes is the engine, `kubectl` is the steering wheel. Whether you are ru
 * **The Universal Translator:** `kubectl` communicates directly with the Kubernetes API server to perform actions.
 * **Platform Agnostic:** Unlike provider-specific CLI tools, `kubectl` works identically across any Kubernetes environment (e.g., AWS EC2, Fargate, Google Kubernetes Engine, or on-premises servers).
 * **Resource-Centric:** `kubectl` specifically interacts with Kubernetes *resources* (like Pods and Deployments).
-* **eksctl vs. kubectl:** `eksctl` is used to build and manage the actual AWS cluster infrastructure and Node Groups. `kubectl` is used to deploy and manage the applications running *inside* that infrastructure.
+
+* **`eksctl vs kubectl`:  `eksctl` (The Builder) Used to set up and manage the physical **AWS infrastructure** (the servers, clusters, and node groups) where your system lives. You use this mostly during setup.
+  **`kubectl` (The Operator):** Used to deploy and manage the **applications** running *inside* that infrastructure on a daily basis.
+
+### Quick Comparison
+
+| Tool | Focus | What it handles |
+| --- | --- | --- |
+| **`eksctl`** | **Infrastructure** | AWS servers, clusters, and node groups |
+| **`kubectl`** | **Applications** | Code, deployments, and services running inside the cluster |
+---
+
+### The Restaurant Analogy
+
+* **`eksctl` is like the construction company.**
+* It builds the restaurant building, sets up the kitchen, installs the electricity, and builds the tables and chairs (this is your **infrastructure**). You usually only use it when you are first building the place or need to expand it.
+
+
+* **`kubectl` is like the restaurant manager.**
+* Once the building is ready, the manager runs what happens *inside*. They hire the staff, decide what goes on the menu, seat customers, and cook the food (these are your **applications**). You use `kubectl` every single day to manage your apps.
 
 ## Detailed Notes
 
 ### The Command Syntax
+
+<img width="1040" height="435" alt="image" src="https://github.com/user-attachments/assets/a65132bf-8659-4aae-b8ca-b89901c4b3c9" />
 
 Every `kubectl` command follows a strict structural pattern: `kubectl [command] [type] [name] [flags]`.
 
