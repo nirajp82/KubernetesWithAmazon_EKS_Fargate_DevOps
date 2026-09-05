@@ -14,7 +14,7 @@ If Kubernetes is the engine, `kubectl` is the steering wheel. Whether you are ru
 * **Platform Agnostic:** Unlike provider-specific CLI tools, `kubectl` works identically across any Kubernetes environment (e.g., AWS EC2, Fargate, Google Kubernetes Engine, or on-premises servers).
 * **Resource-Centric:** `kubectl` specifically interacts with Kubernetes *resources* (like Pods and Deployments).
 
-* **`eksctl vs kubectl`:  `eksctl` (The Builder) Used to set up and manage the physical **AWS infrastructure** (the servers, clusters, and node groups) where your system lives. You use this mostly during setup.
+* **`eksctl vs kubectl`**:  `eksctl` (The Builder) Used to set up and manage the physical **AWS infrastructure** (the servers, clusters, and node groups) where your system lives. You use this mostly during setup.
   **`kubectl` (The Operator):** Used to deploy and manage the **applications** running *inside* that infrastructure on a daily basis.
 
 ### Quick Comparison
