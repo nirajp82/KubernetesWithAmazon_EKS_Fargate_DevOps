@@ -29,8 +29,11 @@ With Amazon EKS, AWS assumes responsibility for the control plane. They deploy i
 While AWS manages the master nodes, you must decide how to run the worker nodes. EKS offers three options:
 
 1. **Self-Managed Nodes:** You provision standard EC2 instances, use custom AMIs, and manually handle OS patching and version upgrades.
-2. **Managed Node Groups:** AWS automates the heavy lifting for EC2. AWS provides optimized, patched AMIs (currently Amazon Linux) and handles rolling upgrades with a single API call, automatically managing pod disruptions to ensure zero downtime.
-3. **AWS Fargate:** The futuristic, serverless option. There are no EC2 instances to manage, patch, or scale. You simply define pods, and AWS provisions the exact compute capacity required on the fly, hiding the underlying infrastructure entirely.
+   <img width="683" height="474" alt="image" src="https://github.com/user-attachments/assets/06756dfc-c788-447d-86d5-7da79668c54a" />
+
+3. **Managed Node Groups:** AWS automates the heavy lifting for EC2. AWS provides optimized, patched AMIs (currently Amazon Linux) and handles rolling upgrades with a single API call, automatically managing pod disruptions to ensure zero downtime.
+   
+5. **AWS Fargate:** The futuristic, serverless option. There are no EC2 instances to manage, patch, or scale. You simply define pods, and AWS provisions the exact compute capacity required on the fly, hiding the underlying infrastructure entirely.
 
 ### AWS Ecosystem Integration
 
@@ -41,6 +44,7 @@ One of the primary benefits of EKS is its native integration with the broader AW
 * **Other Tools:** Deep integration with API Gateway, Secrets Manager, CloudWatch, and CodePipeline.
 
 ## Workflow
+<img width="987" height="511" alt="image" src="https://github.com/user-attachments/assets/f14e4772-917a-48d7-83eb-a687a78f185c" />
 
 ```mermaid
 flowchart TD
