@@ -159,9 +159,7 @@ A: If the resource name is omitted, `kubectl` will return a list of all availabl
 ## Practice Exercises
 
 1. **Syntax Breakdown:** Write down the command `kubectl describe deploy web-server -n production`. Identify which part of the command matches the `command`, `type`, `name`, and `flags` syntax slots.
-2. **Abbreviation Challenge:** Look up the Kubernetes abbreviations for `services`, `replicasets`, and `namespaces`. Write a mock command to `get` all of them using only their shortened names.
 
-**1. Syntax Breakdown**
 **Question:** Break down the command `kubectl describe deploy web-server -n production`. Identify which parts of the command match the `command`, `type`, `name`, and `flags` syntax slots.
 **Answer:**
 
@@ -170,7 +168,7 @@ A: If the resource name is omitted, `kubectl` will return a list of all availabl
 * **Name:** `web-server` (the specific target resource)
 * **Flags:** `-n production` (the modifier targeting a specific namespace)
 
-**2. Abbreviation Challenge**
+2. **Abbreviation Challenge:** Look up the Kubernetes abbreviations for `services`, `replicasets`, and `namespaces`. Write a mock command to `get` all of them using only their shortened names.
 **Question:** Look up the Kubernetes abbreviations for `services`, `replicasets`, and `namespaces`. Write a mock command to `get` all of them using only their shortened names.
 **Answer:**
 
@@ -179,4 +177,3 @@ A: If the resource name is omitted, `kubectl` will return a list of all availabl
 * `namespaces` = `ns`
 * **Command:** `kubectl get svc,rs,ns`
 
-**Ready for your next transcript whenever you are.**
