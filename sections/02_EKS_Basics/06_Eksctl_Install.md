@@ -106,6 +106,34 @@ flowchart TD
 * **Step 1:** Use `eksctl` to scale the AWS Node Group (the physical/virtual servers).
 * **Step 2:** Use `kubectl` to scale the Nginx Deployment (the Kubernetes application workloads).
 
+**`eksctl`** controls the **hardware** (the physical/virtual servers). **`kubectl`** controls the **software** (your application code) running *inside* that hardware.
+
+```mermaid
+flowchart TD
+    subgraph Step 1: eksctl [The Hardware Layer]
+        A[eksctl command] -->|Tells AWS| B[Build New EC2 Servers]
+        B --> C[Worker Node 1]
+        B --> D[Worker Node 2]
+        B --> E[Worker Node 3]
+    end
+
+    subgraph Step 2: kubectl [The Software Layer]
+        F[kubectl command] -->|Tells Kubernetes| G[Create Nginx Copies]
+        G -.->|K8s places software inside Nodes| C
+        G -.->|K8s places software inside Nodes| D
+        G -.->|K8s places software inside Nodes| E
+    end
+
+```
+
+**The Box Analogy**
+
+* **`eksctl` gives you empty boxes:** When you scale from 2 to 5 Worker Nodes, AWS boots up 3 brand new, empty computers. They are running, consuming electricity, and costing you money, but they aren't doing any actual work yet.
+* **`kubectl` fills the boxes:** When you scale from 2 to 5 Nginx Replicas, Kubernetes creates 3 new running copies of your application code. Kubernetes then looks at your empty computers (Nodes) and places the Nginx code inside them so they actually start serving web traffic.
+
+**Why you cannot just use one:**
+If you tell `kubectl` to create 100 copies of Nginx, but you only have 2 physical Nodes, your two computers will run out of memory. The extra 98 Nginx copies will crash or get stuck in a "Pending" state because there is literally no physical RAM left to hold them. You *must* use `eksctl` first to buy more computers, so `kubectl` has a place to put your software.
+
 **2. Troubleshooting Windows Installation**
 **Question:** You paste the Chocolatey installation script into PowerShell, but you receive a red error stating "running scripts is disabled on this system." Provide the exact step-by-step commands to resolve this and verify the fix.
 **Answer:**
