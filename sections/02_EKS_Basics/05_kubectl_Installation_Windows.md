@@ -145,3 +145,89 @@ A: AWS provides Amazon-vended binaries that are specifically tested and validate
 * **Step 1:** Instruct them to close the current VS Code terminal instance completely (or restart VS Code).
 * **Step 2:** Open a fresh terminal session. This forces the terminal to fetch the newly updated environment variables from the OS.
 * **Step 3:** Run `kubectl version --client` again.
+
+### AWS Integration
+
+To interact with an Amazon EKS cluster, `kubectl` must securely authenticate through AWS Identity and Access Management (IAM). Because `kubectl` is an open-source tool that does not natively understand AWS IAM, it relies on a local handoff process involving the AWS CLI and a configuration file to bridge the gap.
+
+**The Authentication & Authorization Flow**
+
+```mermaid
+flowchart TD
+    subgraph Local_Machine ["Local Workstation"]
+        KCTL["kubectl command"]
+        KCFG["kubeconfig file"]
+        AWSCLI["AWS CLI"]
+    end
+
+    subgraph AWS_Cloud ["AWS Cloud"]
+        IAM["AWS IAM"]
+        API["EKS API Server"]
+        RBAC["K8s RBAC"]
+    end
+
+    KCTL -->|1. Reads| KCFG
+    KCFG -->|2. Triggers| AWSCLI
+    AWSCLI -->|3. Generates IAM Token| IAM
+    IAM -->|4. Returns Token| AWSCLI
+    AWSCLI -->|5. Passes Token| KCTL
+    KCTL -->|6. Sends Request + Token| API
+    API -->|7. Maps IAM Identity| RBAC
+
+```
+
+**How the Components Integrate**
+
+* **The `kubeconfig` File:** This local file (typically located at `~/.kube/config`) acts as the bridge. When you connect to an EKS cluster using `aws eks update-kubeconfig`, AWS writes the cluster's API endpoint, certificate authority, and an `exec` block into this file.
+* **The Helper Process (`aws eks get-token`):** When you type a command like `kubectl get pods`, `kubectl` reads the `kubeconfig` file. The `exec` block inside the file instructs `kubectl` to temporarily pause and trigger the AWS CLI in the background. The AWS CLI uses your local IAM credentials to generate a short-lived (15-minute) secure authentication token.
+* **The API Handoff:** The AWS CLI passes this token back to `kubectl`. `kubectl` then injects the token into an HTTPS authorization header and fires the request at the EKS API Server.
+* **Authentication vs. Authorization:**
+* **Authentication (Who are you?):** The EKS API Server receives the token and asks AWS IAM to verify it. IAM confirms your identity (e.g., `AdminUser`).
+* **Authorization (What can you do?):** EKS then maps your IAM identity to Kubernetes native Role-Based Access Control (RBAC). Even if IAM says your token is valid, if K8s RBAC does not grant your user the rights to view Pods, the API server will reject the request.
+
+
+
+**Under the Hood: The Kubeconfig Execution Block**
+Here is what the integration looks like inside your `kubeconfig` file. Notice how `kubectl` relies on the `aws` CLI command to fetch the token dynamically.
+
+```yaml
+users:
+- name: arn:aws:eks:us-east-1:1234567890:cluster/dev-cluster
+  user:
+    exec:
+      apiVersion: client.authentication.k8s.io/v1beta1
+      command: aws
+      args:
+      - --region
+      - us-east-1
+      - eks
+      - get-token
+      - --cluster-name
+      - dev-cluster
+
+```
+
+**FAQ: EKS Integration**
+
+**Q: Does `kubectl` store my AWS IAM credentials?**
+**A:** No. `kubectl` never sees your AWS Access Keys. It delegates the authentication process entirely to the AWS CLI, which securely manages your IAM keys and only hands a temporary token back to `kubectl`.
+
+**Q: If I have full AWS Administrator access in IAM, do I automatically have full access to Kubernetes resources?**
+**A:** No. IAM only handles *authentication* (getting through the front door). Once inside, Kubernetes RBAC dictates your *authorization*. The only exception is the IAM entity (user or role) that originally created the EKS cluster; this creator is automatically granted permanent, hidden `system:masters` (super-admin) privileges in the cluster's RBAC configuration.
+
+**Practice Exercises**
+
+**1. The Integration Handoff**
+**Question:** You run `kubectl get namespaces`. Describe the immediate next step `kubectl` takes locally before it ever sends network traffic to the EKS cluster.
+**Answer:**
+
+* `kubectl` reads the local `~/.kube/config` file.
+* It finds the `exec` block for the active context.
+* It executes the AWS CLI locally (`aws eks get-token`) to request a temporary IAM authentication token.
+
+**2. Authentication vs. Authorization**
+**Question:** A new developer is added to your AWS account with full IAM Administrator privileges. However, when they run `kubectl get pods`, they receive an `Unauthorized` or `Forbidden` error from the EKS API Server. What is the missing link?
+**Answer:**
+
+* The developer has successfully authenticated via IAM, but they lack K8s RBAC authorization.
+* An existing cluster administrator must update the `aws-auth` ConfigMap (or use the EKS Access Entries API) to map the new developer's IAM user ARN to a K8s RBAC Role or ClusterRole.
