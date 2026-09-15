@@ -62,12 +62,12 @@ Out of 10 requested Pods, only a couple come up `Running` — the rest sit in `P
 
 <img width="452" height="232" alt="image" src="https://github.com/user-attachments/assets/282bcfdb-f50b-4b3c-a891-00c67f058a35" />
 
-
 Check why with `describe`:
 
 ```bash
 kubectl describe pod <pending-pod-name>
 ```
+<img width="815" height="87" alt="image" src="https://github.com/user-attachments/assets/51bb3d30-a508-4222-b724-2d747f4a1d05" />
 
 ```
 Events:
