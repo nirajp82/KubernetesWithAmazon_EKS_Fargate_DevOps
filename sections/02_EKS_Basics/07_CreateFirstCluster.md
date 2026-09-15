@@ -2,40 +2,47 @@
 
 *Section 2: EKS Basics · ~15 min*
 
-## The Big Picture: EKS Architecture
+## The Big Picture: What is an EKS Cluster?
 
-Before we run any commands, it helps to understand what an Amazon EKS (Elastic Kubernetes Service) cluster actually is. Every EKS cluster is split into two completely separate worlds: **The Control Plane** (managed by AWS) and the **Worker Nodes** (managed by you).
+Before we run any commands, it helps to understand what an Amazon EKS (Elastic Kubernetes Service) **Cluster** actually is.
 
-To understand how the pieces fit together, think of Kubernetes like a real estate development. The pieces fit inside each other like Russian nesting dolls, from largest to smallest:
+A **Cluster** is not a single machine. It is a unified system made up of two distinct parts working together: **The Control Plane** (managed by AWS) and the **Worker Nodes** (managed by you). When you create a cluster, you are telling AWS to build and connect both of these halves.
 
-1. **The Control Plane (City Hall):** The brain of the operation. It doesn't hold any of your actual applications (no Pods or Containers). Its only job is to manage the city—scheduling new applications, monitoring health, and keeping the database (`etcd`) of what should be running. In EKS, AWS builds and maintains City Hall for you on their own hidden servers. You cannot log into it; you just send it instructions, and you pay a flat hourly fee for AWS to keep it running.
-2. **Node Group (A row of identical apartment buildings):** A Node Group isn't a physical thing itself; it is a fleet of identically configured virtual machines. If traffic spikes, AWS will automatically build more identical "buildings" in this group.
-3. **Worker Node (One apartment building):** The actual physical or virtual computer (in AWS, an EC2 instance). This provides the CPU, memory, and hard drive space to run your apps.
-4. **Pod (A single apartment inside the building):** A wrapper that lives *inside* the Worker Node. A single Worker Node can hold dozens or hundreds of Pods.
-5. **Container (A person living in the apartment):** Your actual running application code (like a Docker container), living *inside* the Pod. Most of the time, a Pod holds just one Container. Sometimes, a Pod holds multiple Containers that need to share the same local network and storage.
+To understand how the pieces fit together, think of your EKS Cluster like a real estate development. The pieces fit inside each other like Russian nesting dolls, from largest to smallest:
 
-Here is how the architecture looks from a bird's-eye view:
+1. **The Cluster:** The entire city. It includes the management office (Control Plane) and all the apartment buildings (Worker Nodes) connected together.
+2. **The Control Plane (City Hall):** The brain of the operation. It doesn't hold any of your actual applications (no Pods or Containers). Its only job is to manage the city—scheduling new applications, monitoring health, and keeping the database (`etcd`) of what should be running. In EKS, AWS builds and maintains City Hall for you on their own hidden servers. You cannot log into it; you just send it instructions, and you pay a flat hourly fee for AWS to keep it running.
+3. **Node Group (A row of identical apartment buildings):** A Node Group isn't a physical thing itself; it is a fleet of identically configured virtual machines. If traffic spikes, AWS will automatically build more identical "buildings" in this group.
+4. **Worker Node (One apartment building):** The actual physical or virtual computer (in AWS, an EC2 instance). This provides the CPU, memory, and hard drive space to run your apps.
+5. **Pod (A single apartment inside the building):** A wrapper that lives *inside* the Worker Node. A single Worker Node can hold dozens or hundreds of Pods.
+6. **Container (A person living in the apartment):** Your actual running application code (like a Docker container), living *inside* the Pod. Most of the time, a Pod holds just one Container. Sometimes, a Pod holds multiple Containers that need to share the same local network and storage.
+
+Here is how the architecture stacks up. Notice how the Control Plane and the Worker Nodes together make up the **Cluster**:
 
 ```mermaid
 flowchart TD
-    subgraph AWS_Managed [AWS Managed]
-        CP[Control Plane / API Server]
-    end
+    User["You (using kubectl)"] -->|Secure API Calls| CP
 
-    subgraph Your_AWS_Account [Your AWS Account]
-        subgraph NG_Default [Node Group: ng-default]
-            subgraph WN1 [Worker Node 1]
-                P1[Pod] --> C1((Container))
-                P2[Pod] --> C2((Container))
+    subgraph The_Cluster [Your Entire EKS Cluster]
+        direction TB
+        
+        subgraph CP_Env [1. The Control Plane (AWS Managed servers)]
+            CP[API Server, Scheduler, etcd Database]
+        end
+        
+        subgraph NG_Env [2. Node Group (Your AWS Account)]
+            direction TB
+            subgraph Node1 [Worker Node 1]
+                Pod1[Pod] --> Container1((Container))
             end
-            subgraph WN2 [Worker Node 2]
-                P3[Pod] --> C3((Container))
+            subgraph Node2 [Worker Node 2]
+                Pod2[Pod] --> Container2((Container))
             end
         end
+        
+        CP_Env -->|Manages and schedules apps onto| NG_Env
     end
 
-    User["You (using kubectl)"] -->|Secure API Calls| CP
-    CP -->|Manages| NG_Default
 ```
 
 ### How Does `kubectl` Securely Talk to the Control Plane?
@@ -48,7 +55,7 @@ When you type a command, `kubectl` looks at your hidden `~/.kube/config` file, w
 
 ## Moment of Truth: Spinning Up a Real Cluster
 
-Everything so far has been theory and tooling. Time to actually create an EKS cluster with `eksctl`.
+Everything so far has been theory and tooling. Time to actually create a single EKS cluster using `eksctl`.
 
 ```bash
 eksctl create cluster \
@@ -71,12 +78,14 @@ Copy that command into a terminal that has both the AWS CLI and `eksctl` install
 
 ## What's Actually Happening Behind the Scenes
 
-`eksctl` doesn't talk to EKS directly — it submits **CloudFormation** stacks, exactly as described in [lecture 2](https://www.google.com/search?q=02_eksctl.md). For one `eksctl create cluster` call, you get (at least) two stacks:
+`eksctl` doesn't talk to EKS directly — it submits **CloudFormation** templates to AWS.
 
-* `eksctl-eksctl-test-cluster` — the EKS cluster itself (VPC, subnets, Control Plane).
-* `eksctl-eksctl-test-nodegroup-ng-default` — the worker node group (Auto Scaling Group, EC2 nodes).
+Even though you are only creating **one** EKS cluster, `eksctl` breaks the job into parts and submits **two separate CloudFormation stacks** to build it:
 
-Open the **AWS CloudFormation console** and you'll see both stacks. Under **Resources**, you'll find everything `eksctl` provisioned for you — security group ingress/egress rules, an Auto Scaling Group, an instance profile, and more. Under **Outputs**, you'll find things like the worker node's instance role and instance profile ARNs.
+1. `eksctl-eksctl-test-cluster` — **The Cluster Stack:** This builds the network (VPC, subnets) and the AWS-managed Control Plane.
+2. `eksctl-eksctl-test-nodegroup-ng-default` — **The Node Group Stack:** This builds your Worker Nodes (Auto Scaling Group, EC2 instances) and connects them to the Control Plane.
+
+Open the **AWS CloudFormation console** and you'll see both of these stacks building your single cluster. Under **Resources**, you'll find everything `eksctl` provisioned for you — security group ingress/egress rules, an Auto Scaling Group, an instance profile, and more. Under **Outputs**, you'll find things like the worker node's instance role and instance profile ARNs.
 
 Open the **EKS console** and you'll see your cluster listed by name (`eksctl-test`), along with its Kubernetes version and other details.
 
@@ -140,7 +149,7 @@ eksctl get nodegroup --cluster eksctl-test
 
 ```
 
-You should now see **three** node groups: the original `ng-default` (from cluster creation), plus `ng-1-public` and `ng-2-managed`.
+You should now see **three** node groups inside your single cluster: the original `ng-default` (from cluster creation), plus `ng-1-public` and `ng-2-managed`.
 
 ### Creating the whole cluster from a config file
 
@@ -194,11 +203,11 @@ eksctl get cluster
 
 ## Key Takeaways
 
-* **The Architecture:** Clusters consist of an AWS-managed Control Plane (City Hall) and user-managed Worker Nodes (apartment buildings) organized into Node Groups. Pods live inside Worker Nodes, and Containers live inside Pods.
+* **What is a Cluster:** A cluster is a unified system combining an AWS-managed Control Plane (the brain) and user-managed Worker Nodes (the machines running your apps) organized into Node Groups.
 * **Creation:** `eksctl create cluster --name <name> --node-type t3.micro --nodes <n>` spins up a real EKS cluster in about 5–10 minutes; always set `--node-type` to stay Free Tier eligible.
-* **CloudFormation:** Behind the scenes, `eksctl` submits one CloudFormation stack per cluster and one per node group — visible in the CloudFormation console.
+* **CloudFormation:** To build your *single* cluster, `eksctl` submits *two* CloudFormation stacks — one for the cluster/Control Plane and one for the node group.
 * **Connectivity:** `kubectl` communicates securely with the Control Plane using AWS IAM. `eksctl` automatically updates your local **kubeconfig**, so `kubectl` works against the new cluster immediately.
-* **Config Files:** A YAML config file (`--config-file=...`) is the version-control-friendly alternative to typing every flag by hand, for both `eksctl create cluster` and `eksctl create nodegroup`.
+* **Config Files:** A YAML config file (`--config-file=...`) is the version-control-friendly alternative to typing every flag by hand.
 * **Cleanup:** Always run `eksctl delete cluster --name <name>` when you're done — an idle cluster still costs money.
 
 ---
