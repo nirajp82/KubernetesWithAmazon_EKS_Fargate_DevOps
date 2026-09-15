@@ -18,25 +18,24 @@ Here is how the architecture looks from a bird's-eye view:
 
 ```mermaid
 flowchart TD
-    subgraph AWS Managed
+    subgraph AWS_Managed [AWS Managed]
         CP[Control Plane / API Server]
     end
 
-    subgraph Your AWS Account
-        subgraph Node Group: ng-default
-            subgraph Worker Node 1
+    subgraph Your_AWS_Account [Your AWS Account]
+        subgraph NG_Default [Node Group: ng-default]
+            subgraph WN1 [Worker Node 1]
                 P1[Pod] --> C1((Container))
                 P2[Pod] --> C2((Container))
             end
-            subgraph Worker Node 2
+            subgraph WN2 [Worker Node 2]
                 P3[Pod] --> C3((Container))
             end
         end
     end
 
-    User(You using kubectl) -->|Secure API Calls| CP
-    CP -->|Manages| Node Group
-
+    User["You (using kubectl)"] -->|Secure API Calls| CP
+    CP -->|Manages| NG_Default
 ```
 
 ### How Does `kubectl` Securely Talk to the Control Plane?
