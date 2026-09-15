@@ -20,7 +20,7 @@ Think of Deployment as another wrapper, one level up from ReplicaSet:
 - A **Pod** wraps a **container**.
 - A **ReplicaSet** wraps a group of **Pods**.
 - A **Deployment** wraps a **ReplicaSet**.
-- 
+
 <img width="573" height="407" alt="image" src="https://github.com/user-attachments/assets/8b9f8fb0-8e27-4c01-86a1-ee2fd5eda55d" />
 
 Deployment provides **declarative updates** for Pods and ReplicaSets: you describe a desired state in a deployment file, and the **Deployment controller** changes the actual state to match the desired state, at a controlled rate. You can also define deployments to create a new ReplicaSet, or to remove existing deployments and have new ones adopt their resources.
@@ -69,13 +69,13 @@ This defines **how Pods get upgraded** — say, bumping the image from `nginx:1.
 - **`maxUnavailable: 0`** — the maximum number of Pods allowed to be missing from the desired state during the update. With desired state = 3 and `maxUnavailable: 0`, at least **3** Pods must be running at all times throughout the rollout. (If this were `maxUnavailable: 1` instead, the rollout could drop down to `3 - 1 = 2` running Pods at a time.)
 
 ### The rollout, step by step
-- Initial (Before Upgrade)
+**Before the upgrade:**
 <img width="556" height="600" alt="image" src="https://github.com/user-attachments/assets/ca40cdd4-1eb5-40f1-8205-6bd811fae6a3" />
 
--During Upgrade
+**During the upgrade:**
 <img width="1854" height="966" alt="image" src="https://github.com/user-attachments/assets/fbd3fd10-07fd-40f1-8dae-437c6838d784" />
 
--After Upgrade
+**After the upgrade:**
 <img width="988" height="579" alt="image" src="https://github.com/user-attachments/assets/8d163fd6-1a95-474d-bd92-a2349872a586" />
 
 ```mermaid
@@ -112,5 +112,5 @@ At this point, the old (now-empty) ReplicaSet can be deleted freely — it has n
 - Self-healing is layered: ReplicaSet restores Pods; Deployment restores ReplicaSets.
 - Rolling updates are tuned via `maxSurge` (how many extra Pods allowed above desired count), `maxUnavailable` (how many below desired count are tolerated), and `minReadySeconds` (a health/soak wait before removing an old Pod).
 
-**Previous:** [← 4. Pods](04-pods.md)
-**Next:** [6. Chicken First Or Egg First? →](06-chicken-first-or-egg-first.md)
+**Previous:** [← 4. Pods](04_Pods.md)
+**Next:** [10. Services →](10_Services.md)

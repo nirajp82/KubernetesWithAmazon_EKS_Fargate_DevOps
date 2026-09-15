@@ -1,79 +1,49 @@
-# Kubernetes Services: Networking and Discovery
+# 6. Services
+*Section 1: Kubernetes Basics · ~8 min*
 
-## Overview
+## The problem: Pods are mortal
 
-A Kubernetes Service is an abstract way to expose an application running on a set of Pods as a network service. It acts as a reliable traffic router (like a load balancer) that sits in front of your Pods, ensuring external users or other internal K8s components can always reach your application.
+Pods come and go. They scale up, scale down, crash, and get replaced constantly — and every time a Pod is recreated, **it gets a brand-new IP address.**
 
-## Why This Matters
+Imagine a frontend Nginx Pod that talks directly to a backend MySQL Pod using its IP address. The moment that MySQL Pod restarts (for any reason), its IP changes — and the frontend's connection breaks. Hardcoding Pod IPs is a dead end.
 
-Pods are mortal and ephemeral. When a Pod crashes or gets replaced, it receives a completely new IP address. If your applications rely on hardcoded Pod IPs, connections will break constantly. Services solve this by providing a permanent, static IP address and DNS name that routes traffic only to healthy Pods.
+## The fix: a Service
 
-## Key Concepts
+> A **Service** is a stable network endpoint that sits in front of a group of Pods and routes traffic to whichever of them are currently healthy.
 
-* **Service Abstraction:** A stable network endpoint that absorbs traffic and distributes it across multiple backend Pods.
-* **Label Selectors:** The mechanism a Service uses to discover which Pods it should route traffic to.
-* **Service Types:** K8s offers distinct ways to expose services:
-* **ClusterIP (Default):** Exposes the Service on an internal IP. Only reachable from *within* the cluster.
-* **NodePort:** Exposes the Service on a static port across all Nodes. Reachable externally using `<NodeIP>:<NodePort>`.
-* **LoadBalancer:** Provisions a cloud provider's external load balancer (e.g., AWS Elastic Load Balancer) to route internet traffic to your Service.
+Think of it as a built-in load balancer/traffic router: it gives you one address that never changes, no matter how many times the Pods behind it are replaced.
 
+## How a Service finds its Pods
 
+A Service never tracks Pods by IP. Instead, it uses **label selectors** — the same mechanism that wires together Deployments, ReplicaSets, and Pods (see the [previous lecture](05-replicaset-and-deployment.md)).
 
-## Detailed Notes
-
-**The Dynamic IP Problem**
-Pods in K8s clusters dynamically scale up, down, or get recreated. If a frontend Nginx Pod connects directly to a backend MySQL Pod's IP, the connection breaks the moment that MySQL Pod crashes and gets replaced.
-
-**How Services Discover Pods**
-
-Services do not track Pods by static IPs; they track them dynamically using **Labels**. When you define a Service, you provide a `selector` (e.g., `app: frontend`). The Service continuously queries the Kubernetes API to find any Pods matching that exact label and adds them to its active routing pool.
-
-**Important Scope Limits:**
-
-* **Same Cluster:** The Service only scans the internal directory of the specific Kubernetes cluster where it is deployed. It cannot route traffic to Pods in an entirely separate cluster.
-* **Same Namespace:** Services are strictly namespace-bound. A Service deployed in the `production` namespace will only discover matching Pods within that exact `production` namespace. It will completely ignore Pods with the exact same label if they are deployed in a different namespace (like `testing` or `dev`).
-## Workflow
+You give the Service a `selector`, e.g. `app: frontend`. The Service continuously asks the Kubernetes API "which Pods currently have the label `app: frontend`?" and routes traffic to whatever it gets back — automatically picking up new Pods and dropping dead ones.
 
 ```mermaid
 flowchart TD
-    A[Deploy Pods via Deployment] --> B[Assign Labels e.g., app=frontend]
-    B --> C[Create Service with matching Selector]
-    C --> D[Service discovers Pods automatically]
-    D --> E[Service distributes incoming traffic]
-
+    A[Deploy Pods via a Deployment] --> B[Pods get a label, e.g. app=frontend]
+    B --> C[Create a Service with a matching selector]
+    C --> D[Service continuously discovers matching Pods]
+    D --> E[Service distributes incoming traffic across them]
 ```
 
-## Architecture Diagram
 <img width="971" height="457" alt="image" src="https://github.com/user-attachments/assets/d69ddf53-cb8c-45c2-a321-8df709c349ec" />
 
-*The following reflects the label selector binding process shown in `image_c7c041.png`.*
+## Two scope rules worth remembering
 
-```mermaid
-flowchart TD
-    Traffic[External Traffic] --> ELB[AWS Elastic Load Balancer \n Name: lb-service \n Type: LoadBalancer]
-    ELB -- "Label selector - app: frontend" --> P1[Pod: Nginx \n Label-app: frontend]
-    ELB -- "Label selector - app: frontend" --> P2[Pod: Nginx \n Label-app: frontend]
+- **Same cluster only** — a Service only looks for Pods inside its own Kubernetes cluster. It cannot route to Pods in a different cluster.
+- **Same Namespace only** — a Service only looks for Pods in the same Namespace it was created in. A Service in `production` will completely ignore Pods with the exact same label sitting in `testing` or `dev`.
 
-```
+## A minimal example
 
-## Step-by-Step Process
-
-1. Define a Deployment that spins up Pods with a specific label (e.g., `app: frontend`).
-2. Define a Service manifest with a `selector` matching that exact label.
-3. Set the Service `type` (e.g., `LoadBalancer` for external AWS access).
-4. Apply the manifests. K8s automatically links the Service to the Pods.
-5. The cloud provider provisions the Load Balancer and begins routing traffic.
-
-## Commands and Examples
-
-**Deployment Manifest (`frontend-deployment.yaml`):**
+**Deployment** (creates the Pods and labels them):
 
 ```yaml
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: frontend-deployment
-  namespace: production 
+  namespace: production
 spec:
   replicas: 2
   selector:
@@ -82,81 +52,55 @@ spec:
   template:
     metadata:
       labels:
-        app: frontend  # <-- Label applied to Pods
+        app: frontend        # <-- label applied to each Pod
     spec:
       containers:
       - name: frontend-container
         image: nginx
-
 ```
 
-**Service Manifest (`loadbalancer-service.yaml`):**
+**Service** (finds those Pods and routes traffic to them):
 
 ```yaml
 apiVersion: v1
 kind: Service
 metadata:
   name: lb-service
-  namespace: production 
-  labels:
-    app: lb-service
+  namespace: production
 spec:
-  type: LoadBalancer  # <-- Provisions AWS ELB
+  type: LoadBalancer
   ports:
     - port: 80
   selector:
-    app: frontend     # <-- Matches the Pod labels above
-
+    app: frontend           # <-- must match the Pod labels above
 ```
 
-## Best Practices
+Apply both, and Kubernetes wires the Service to those Pods automatically — on AWS, `type: LoadBalancer` even provisions a real AWS Elastic Load Balancer for you, without you ever touching the AWS console.
 
-* **Explicit Labeling:** Standardize label schemas (`app`, `tier`, `env`) so Services reliably match the correct workloads.
-* **Least Privilege Exposure:** Default to `ClusterIP` for backend systems (like databases) to prevent accidental public exposure. Only use `LoadBalancer` for true frontends.
+```mermaid
+flowchart TD
+    Traffic[External traffic] --> ELB["AWS Elastic Load Balancer<br/>Service: lb-service (type: LoadBalancer)"]
+    ELB -- "selector: app=frontend" --> P1["Pod: nginx<br/>label app=frontend"]
+    ELB -- "selector: app=frontend" --> P2["Pod: nginx<br/>label app=frontend"]
+```
 
-## Common Mistakes
+## Key takeaways
+- Pods are mortal and their IPs change; **Services are the stable address** in front of them.
+- A Service finds its Pods purely through **label selectors** — a typo in the selector means the Service exists but routes traffic nowhere.
+- A Service only ever sees Pods in its **own cluster and own Namespace.**
+- On AWS, a `LoadBalancer`-type Service provisions a real Elastic Load Balancer automatically.
+- Default to `ClusterIP` for internal-only workloads (like a database); the next lecture covers all three Service types (`ClusterIP`, `NodePort`, `LoadBalancer`) in depth.
 
-* **Selector Mismatches:** A typo in the Service `selector` (e.g., `app: fronend`) means the Service will provision successfully but route traffic nowhere, as it cannot find matching Pods.
-* **Hardcoding IPs:** Never configure an application to talk to another K8s workload using a direct IP address.
+## FAQ
 
-## Pro Tips
+**Q: How does a Service actually know which Pods to send traffic to?**
+A: It watches the Kubernetes API for any Pod whose labels match its `selector` field, and keeps that list of healthy targets up to date automatically as Pods are created or destroyed.
 
-* When using a `LoadBalancer` Service on AWS, K8s directly integrates with the AWS API to create the Elastic Load Balancer. You do not need to log into the AWS console to create it manually.
+**Q: My Service exists but nothing seems to reach my Pods — what's the most common cause?**
+A: A selector mismatch — usually a typo (`app: fronend` instead of `app: frontend`). The Service is created successfully either way; it just has zero matching Pods to route to.
 
-## Real-World Use Cases
+**Q: Can a Service in the `production` Namespace route to a Pod with the same label in `dev`?**
+A: No. Services are strictly Namespace-scoped — they only ever consider Pods in the same Namespace they were created in.
 
-| Scenario | Service Type | K8s Component Setup |
-| --- | --- | --- |
-| **Public Website** | `LoadBalancer` | Distributes internet traffic via AWS ELB to a fleet of Nginx frontend Pods. |
-| **Internal Database** | `ClusterIP` | Distributes internal frontend traffic to a changing pool of MySQL backend Pods without exposing them to the internet. |
-
-## Key Takeaways
-
-* Pods are mortal; Services are stable.
-* Services connect to Pods using Label Selectors.
-* Choose the right Service type (`ClusterIP`, `NodePort`, `LoadBalancer`) based on where traffic originates.
-
-## Glossary
-
-* **Service:** A stable network endpoint for a set of dynamic Pods.
-* **Label Selector:** A key-value pair used by a Service to identify its target Pods.
-* **ClusterIP:** The default, internal-only Service type.
-* **LoadBalancer:** A Service type that provisions a public-facing cloud load balancer.
-
-## Revision Notes
-
-* **Problem:** Pods die $\rightarrow$ IPs change $\rightarrow$ Connections break.
-* **Solution:** Services act as static routing middlemen.
-* **Connection mechanism:** `selector` in Service must match `labels` in Pod template.
-
-## Interview Questions
-
-**Q: How does a Kubernetes Service know which Pods to send traffic to?**
-A: Services use Label Selectors. They continuously scan the cluster for Pods whose labels exactly match the key-value pair defined in the Service's `selector` field.
-
-**Q: What are the three primary types of Kubernetes Services and when do you use them?**
-A: `ClusterIP` (internal routing), `NodePort` (external routing via static node ports, usually for dev), and `LoadBalancer` (external routing via cloud provider load balancers, usually for prod).
-
-## Practice Exercises
-
-* Review the YAML files provided above. Change the Deployment template label to `app: web`. What field in the Service YAML must you update to prevent an outage?
+**Previous:** [← 5. ReplicaSet & Deployment](05-replicaset-and-deployment.md)
+**Next:** [7. Service Types →](11_ServiceTypes.md)
