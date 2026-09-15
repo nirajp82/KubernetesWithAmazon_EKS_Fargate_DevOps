@@ -86,4 +86,4 @@ You'll often hear Kubernetes referred to as **"K8s."** That's because there are 
 - "K8s" = K + 8 letters + s.
 
 **Previous:** [← 2. What is Container Orchestrator](02-what-is-container-orchestrator.md)
-**Next:** [4. Pods →](04-pods.md)
+**Next:** [4. Pods →](04_Pods.md)
