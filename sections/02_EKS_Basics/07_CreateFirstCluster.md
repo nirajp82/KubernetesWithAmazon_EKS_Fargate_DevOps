@@ -21,26 +21,26 @@ Here is how the architecture stacks up. Notice how the Control Plane and the Wor
 
 ```mermaid
 flowchart TD
-    User["You (using kubectl)"] -->|Secure API Calls| CP
+    User["You (using kubectl)"] -->|"Secure API Calls"| CP
 
-    subgraph The_Cluster [Your Entire EKS Cluster]
+    subgraph The_Cluster ["Your Entire EKS Cluster"]
         direction TB
         
-        subgraph CP_Env [1. The Control Plane (AWS Managed servers)]
-            CP[API Server, Scheduler, etcd Database]
+        subgraph CP_Env ["1. The Control Plane - AWS Managed"]
+            CP["API Server, Scheduler, etcd Database"]
         end
         
-        subgraph NG_Env [2. Node Group (Your AWS Account)]
+        subgraph NG_Env ["2. Node Group - Your AWS Account"]
             direction TB
-            subgraph Node1 [Worker Node 1]
-                Pod1[Pod] --> Container1((Container))
+            subgraph Node1 ["Worker Node 1"]
+                Pod1["Pod"] --> Container1(("Container"))
             end
-            subgraph Node2 [Worker Node 2]
-                Pod2[Pod] --> Container2((Container))
+            subgraph Node2 ["Worker Node 2"]
+                Pod2["Pod"] --> Container2(("Container"))
             end
         end
         
-        CP_Env -->|Manages and schedules apps onto| NG_Env
+        CP_Env -->|"Manages and schedules apps onto"| NG_Env
     end
 
 ```
