@@ -162,3 +162,4 @@ A: No — `--nodegroup-name` (and having a node group at all) is optional when c
 A: They do the same thing — the config file is just a reusable, version-controllable way to express the same parameters, instead of retyping a long command every time.
 
 **Previous:** [← 6. Installing eksctl](06_Eksctl_Install.md)
+**Next:** [8. The Hidden Pod Limit Per Node →](08_PodLimitOnCluster.md)
