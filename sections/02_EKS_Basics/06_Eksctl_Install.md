@@ -106,3 +106,4 @@ A: No magic — the last step of `eksctl create cluster` downloads the new clust
 A: `eksctl` to scale the Node Group (the physical/virtual servers); `kubectl` to scale the Deployment (the application Pods running on those servers).
 
 **Previous:** [← 5. Installing kubectl on Windows](05_kubectl_Installation_Windows.md)
+**Next:** [7. Creating Your First EKS Cluster →](07_CreateFirstCluster.md)
