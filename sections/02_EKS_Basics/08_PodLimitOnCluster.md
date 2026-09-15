@@ -60,6 +60,9 @@ kubectl get pods
 
 Out of 10 requested Pods, only a couple come up `Running` — the rest sit in `Pending`. Between the two `t3.micro` nodes (4 Pods each, max) and the system Pods already occupying some of that space, there simply isn't room left for all 10 Nginx replicas.
 
+<img width="452" height="232" alt="image" src="https://github.com/user-attachments/assets/282bcfdb-f50b-4b3c-a891-00c67f058a35" />
+
+
 Check why with `describe`:
 
 ```bash
